@@ -60,14 +60,14 @@ $('form').addEventListener('submit',async e=>{
  catch(err){setStatus(err.message,true)}finally{$('submit').disabled=false}
 });
 function render(r){$('result').classList.remove('hidden');$('person').textContent=r.name+'｜'+r.activity;$('count').textContent='共 '+r.records.length+' 筆';
- $('best').classList.toggle('hidden',!(r.best && r.records.length >= 2));if(r.best){$('bestScore').textContent=r.best.total+' 秒';$('bestDate').textContent=r.best.date}
+ $('best').classList.toggle('hidden', !r.best);if(r.best){$('bestScore').textContent=r.best.total+' 秒';$('bestDate').textContent=r.best.date}
  const body=$('rows');body.replaceChildren();
  if(!r.records.length){body.appendChild(text('p','沒有符合的歷史成績','muted'));return}
  r.records.forEach(rec=>{
   const card=document.createElement('article');card.className='score-card';
   const top=document.createElement('div');top.className='score-top';
   const left=document.createElement('div');left.appendChild(text('div',rec.date||'未填日期','score-date'));
-  if(r.best && r.records.length>=2 && rec.date===r.best.date && rec.total===r.best.total)left.appendChild(text('span','🏆 最佳成績','best-tag'));
+  if(r.best && rec.date===r.best.date && rec.total===r.best.total)left.appendChild(text('span','🏆 最佳成績','best-tag'));
   top.appendChild(left);top.appendChild(text('div',(rec.total||'—')+' 秒','score-total'));card.appendChild(top);
   const info=document.createElement('div');info.className='score-info';
   [rec.group,rec.place,rec.item].filter(Boolean).forEach(v=>info.appendChild(text('span',v)));card.appendChild(info);

@@ -12,8 +12,8 @@
 <body><main class="wrap">
 <section class="panel hero"><img src="logo.jpg" class="logo" alt="COLOR Logo"><h1>競速成績查詢系統</h1><div class="muted">COLOR SPORTS CLUB</div></section>
 <section class="panel"><form id="form" class="form"><div><label for="activity">活動名稱</label><select id="activity" required><option value="">正在載入活動…</option></select></div><div><label for="name">學員姓名</label><input id="name" type="text" maxlength="50" placeholder="請輸入完整姓名" autocomplete="off" required></div><button id="submit" type="submit">查詢成績</button></form><p id="status" class="status muted" role="status" aria-live="polite"></p></section>
-<section id="result" class="panel hidden" aria-live="polite"><div class="rowhead"><h2 id="person"></h2><span id="count" class="muted"></span></div><div id="best" class="best hidden"><div><span style="font-size:12px;font-weight:700">🏆 個人最佳</span><div id="bestDate" class="bestmeta"></div></div><strong id="bestScore"></strong></div><div class="rowhead" style="margin:0 0 10px"><h2>歷史成績</h2><span class="muted" style="font-size:11px">各圈直接顯示</span></div><div id="rows" class="score-list"></div></section>
-<p class="foot">成績以主辦單位 Google 試算表記錄為準｜最佳成績僅比較「總成績」欄</p>
+<section id="result" class="panel hidden" aria-live="polite"><div class="rowhead"><h2 id="person"></h2><span id="count" class="muted"></span></div><div id="best" class="best hidden"><div><span style="font-size:12px;font-weight:700">🏆 個人最佳</span><div id="bestDate" class="bestmeta"></div></div><strong id="bestScore"></strong></div><div class="rowhead" style="margin:0 0 10px"><h2>歷史成績</h2><span class="muted" style="font-size:11px"></span></div><div id="rows" class="score-list"></div></section>
+<p class="foot">網站成績僅供參考 實際以教練記錄為準</p>
 </main>
 <script>
 'use strict';

@@ -16,7 +16,7 @@
 <script>
 'use strict';
 // 必填：貼上 Apps Script 部署後的 /exec 網址。
-const API_URL = '請貼上你的_APPS_SCRIPT_EXEC_網址';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyfSwfsSmTgIiBgzo74rh4FStNLhjVcOOtMy1wxAgCnkdhgcWwgaUiuGz07PtHk0_PUOg/exec';
 const $ = id => document.getElementById(id);
 function setStatus(message,error=false){$('status').textContent=message;$('status').className='status '+(error?'error':'muted')}
 function request(params){

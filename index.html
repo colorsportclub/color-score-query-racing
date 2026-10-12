@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COLOR｜競速成績查詢系統</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#20242a;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}.wrap{max-width:940px;margin:auto;padding:28px 18px 65px}.panel{background:#fff;border:1px solid #e8ebf0;border-radius:20px;box-shadow:0 10px 36px #202b3910;padding:25px;margin-bottom:20px}.hero{text-align:center}.logo{display:block;width:min(280px,78%);height:auto;margin:0 auto 10px}h1{font-size:clamp(22px,4vw,30px);margin:6px 0}h2{font-size:20px;margin:0 0 16px}.muted{color:#657080;font-size:14px}.form{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end}label{display:block;font-weight:650;font-size:14px;margin-bottom:8px}select,input{width:100%;border:1px solid #cbd2dd;border-radius:11px;padding:13px;font:inherit;background:#fff;min-height:48px}button{border:0;border-radius:11px;padding:13px 24px;background:#161c25;color:#fff;font:inherit;font-weight:700;min-height:48px;cursor:pointer}button:disabled{opacity:.5;cursor:wait}.error{color:#b02b2b}.status{margin:12px 0 0;min-height:20px}.hidden{display:none}.best{background:#f0f8f3;border:1px solid #cfe6d6;border-radius:14px;padding:20px;margin-bottom:20px}.best strong{display:block;font-size:34px;color:#177340;margin:6px 0}.rowhead{display:flex;justify-content:space-between;gap:12px;align-items:center}.tablebox{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf0f4;font-size:14px}th{background:#f8f9fb;color:#536071}td.num{font-weight:750}details{margin:4px 0}summary{cursor:pointer;color:#24588e}small{font-size:12px}.foot{text-align:center;color:#7a8390;font-size:12px;margin-top:25px}@media(max-width:650px){.form{grid-template-columns:1fr}.panel{padding:20px}.wrap{padding:16px 12px 40px}.rowhead{align-items:start;flex-direction:column}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="panel hero"><img src="logo.jpg" class="logo" alt="COLOR Logo"><h1>競速成績查詢系統</h1><div class="muted">COLOR SPEED RESULTS</div></section>
+<section class="panel"><form id="form" class="form"><div><label for="activity">活動名稱</label><select id="activity" required><option value="">正在載入活動…</option></select></div><div><label for="name">學員姓名</label><input id="name" type="text" maxlength="50" placeholder="請輸入完整姓名" autocomplete="off" required></div><button id="submit" type="submit">查詢成績</button></form><p id="status" class="status muted" role="status" aria-live="polite"></p></section>
+<section id="result" class="panel hidden" aria-live="polite"><div class="rowhead"><h2 id="person"></h2><span id="count" class="muted"></span></div><div id="best" class="best hidden"><span>🏆 個人最佳成績</span><strong id="bestScore"></strong><span id="bestDate" class="muted"></span></div><h2>所有歷史成績</h2><div class="tablebox"><table><thead><tr><th>測驗日期</th><th>組別</th><th>地點</th><th>項目</th><th>總成績</th><th>各圈成績</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<p class="foot">成績以主辦單位 Google 試算表記錄為準｜最佳成績僅比較「總成績」欄</p>
+</main>
+<script>
+'use strict';
+// 必填：貼上 Apps Script 部署後的 /exec 網址。
+const API_URL = '請貼上你的_APPS_SCRIPT_EXEC_網址';
+const $ = id => document.getElementById(id);
+function setStatus(message,error=false){$('status').textContent=message;$('status').className='status '+(error?'error':'muted')}
+function request(params){
+ return new Promise((resolve,reject)=>{
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(API_URL)){reject(new Error('尚未設定 Apps Script 網址'));return}
+  const callback='COLORcallback_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+  const script=document.createElement('script');let finished=false;
+  const timer=setTimeout(()=>finish(new Error('連線逾時，請稍後重試')),15000);
+  function finish(err,data){if(finished)return;finished=true;clearTimeout(timer);delete window[callback];script.remove();err?reject(err):resolve(data)}
+  window[callback]=data=>finish(null,data);
+  const u=new URL(API_URL);Object.entries({...params,callback}).forEach(([k,v])=>u.searchParams.set(k,v));
+  script.src=u.toString();script.onerror=()=>finish(new Error('無法連線至成績服務'));document.head.appendChild(script);
+ });
+}
+function text(tag,value,className=''){const el=document.createElement(tag);el.textContent=value==null?'':String(value);if(className)el.className=className;return el}
+async function loadActivities(){try{const r=await request({action:'activities'});if(!r.ok)throw Error(r.error);const select=$('activity');select.replaceChildren(text('option','請選擇活動'));select.firstChild.value='';r.activities.forEach(a=>{const opt=text('option',a);opt.value=a;select.appendChild(opt)});setStatus(r.activities.length?'請選擇活動並輸入完整姓名':'尚無符合格式的活動分頁')}catch(e){setStatus(e.message,true);$('activity').replaceChildren(text('option','活動載入失敗'))}}
+$('form').addEventListener('submit',async e=>{
+ e.preventDefault();const activity=$('activity').value,name=$('name').value.trim();if(!activity||!name){setStatus('請選擇活動並輸入姓名',true);return}
+ $('submit').disabled=true;$('result').classList.add('hidden');setStatus('正在查詢成績…');
+ try{const r=await request({action:'search',activity,name});if(!r.ok)throw Error(r.error);render(r);setStatus(r.records.length?'查詢完成':'找不到符合的成績紀錄')}
+ catch(err){setStatus(err.message,true)}finally{$('submit').disabled=false}
+});
+function render(r){$('result').classList.remove('hidden');$('person').textContent=r.name+'｜'+r.activity;$('count').textContent='共 '+r.records.length+' 筆';
+ $('best').classList.toggle('hidden',!r.best);if(r.best){$('bestScore').textContent=r.best.total+' 秒';$('bestDate').textContent='測驗日期：'+r.best.date}
+ const body=$('rows');body.replaceChildren();if(!r.records.length){const tr=document.createElement('tr');const td=text('td','沒有符合的歷史成績');td.colSpan=6;tr.appendChild(td);body.appendChild(tr);return}
+ r.records.forEach(rec=>{const tr=document.createElement('tr');[rec.date,rec.group,rec.place,rec.item,rec.total].forEach((v,i)=>tr.appendChild(text('td',v,i===4?'num':'')));
+ const td=document.createElement('td');const details=document.createElement('details');const summary=text('summary','查看 lap 1～5');details.appendChild(summary);rec.laps.forEach((v,i)=>{const p=text('div','lap '+(i+1)+'：'+(v||'—'));p.style.marginTop='6px';details.appendChild(p)});td.appendChild(details);tr.appendChild(td);body.appendChild(tr)})
+}
+loadActivities();
+</script></body></html>
